@@ -346,7 +346,7 @@ public class FrameCliente extends JFrame implements IServer {
 			return;
 		}
 
-		// Endereço IP
+		// Enderecos IP
 		String host = txtIP.getText().trim();
 		if (!host.matches("[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}")) {
 			JOptionPane.showMessageDialog(this, "O endereço ip parece inválido!");
@@ -361,7 +361,7 @@ public class FrameCliente extends JFrame implements IServer {
 		}
 		int intPorta = Integer.parseInt(strPorta);
 
-		// Iniciando objetos para conexão.
+		// Iniciando objetos para conexao.
 		try {
 			registry = LocateRegistry.getRegistry(host, intPorta);
 
@@ -373,15 +373,15 @@ public class FrameCliente extends JFrame implements IServer {
 			cliente.setPorta(Integer.parseInt(txtMyPort.getText()));
 			cliente.setNome(txtNome.getText());
 
-			// Avisando o servidor que está entrando no Chat.
+			// Avisa o servidor que estao entrando no Chat.
 			servidor.registrarCliente(cliente);
 
-			// Publicar minha lista de arquivos...
+			// Publica minha lista de arquivos.
 			List<Arquivo> lista = getMyListArchives();
 
 			servidor.publicarListaArquivos(cliente, lista);
 
-			// Aqui tenho que ficar pronto para receber uma conexão..
+			// Pronto e Aguardando Conexao
 			iniciarServico();
 			
 			
@@ -460,13 +460,13 @@ public class FrameCliente extends JFrame implements IServer {
 
 			if (servidor != null) {
 				servidor.desconectar(cliente);
-				// UnicastRemoteObject.unexportObject(this, true); Por algum
-				// motivo nao ta funfando..
+				// UnicastRemoteObject.unexportObject(this, true);
+				// Nao funciona =/
 
 				servidor = null;
 			}
 
-			// mostrar("Você saiu do chat.");
+			// mostrar("Voce saiu do chat.");
 
 			btnDesconectar.setEnabled(false);
 
