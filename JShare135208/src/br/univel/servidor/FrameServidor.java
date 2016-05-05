@@ -126,7 +126,7 @@ public class FrameServidor extends JFrame implements IServer{
 		gbc_txtPorta.gridy = 1;
 		contentPane.add(txtPorta, gbc_txtPorta);
 		
-		btnIniciar = new JButton("Iniciar Servi√ßo");
+		btnIniciar = new JButton("Iniciar ServiÁo");
 		GridBagConstraints gbc_btnIniciar = new GridBagConstraints();
 		gbc_btnIniciar.anchor = GridBagConstraints.EAST;
 		gbc_btnIniciar.insets = new Insets(0, 0, 5, 5);
@@ -134,7 +134,7 @@ public class FrameServidor extends JFrame implements IServer{
 		gbc_btnIniciar.gridy = 1;
 		contentPane.add(btnIniciar, gbc_btnIniciar);
 		
-		btnParar = new JButton("Parar Servi√ßo");
+		btnParar = new JButton("Parar ServiÁo");
 		GridBagConstraints gbc_btnParar = new GridBagConstraints();
 		gbc_btnParar.anchor = GridBagConstraints.EAST;
 		gbc_btnParar.insets = new Insets(0, 0, 5, 0);
@@ -163,11 +163,11 @@ public class FrameServidor extends JFrame implements IServer{
 	private SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy H:mm:ss:SSS");
 	private IServer servidor;
 	
-	// Lista para armazenar os clientes que est√£o conectados..
+	// Lista de clientes que est„o conectados.
 	private Map<String, Cliente> mapaClientes = new HashMap<>();
 	
-	// Lista que vai armazenar os arquivos dos clientes..
-	private Map<Arquivo, Cliente> mapaClienteArquivo = new HashMap<>();
+	// Lista de armazenagem  dos arquivos dos clientes.
+	private Map<Cliente, List<Arquivo>> mapaClienteArquivo = new HashMap<>();
 	
 	private Registry registry;
 	
@@ -189,7 +189,7 @@ public class FrameServidor extends JFrame implements IServer{
 
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		// Configura o frame para avisar os clientes que est√° sendo fechado.
+		// Configura o frame para avisar os clientes que est· sendo fechado.
 		this.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
@@ -221,7 +221,7 @@ public class FrameServidor extends JFrame implements IServer{
 		String strPorta = txtPorta.getText().trim();
 
 		if (!strPorta.matches("[0-9]+") || strPorta.length() > 5) {
-			JOptionPane.showMessageDialog(this, "A porta deve ser um valor num√©rico de no m√°ximo 5 d√≠gitos!");
+			JOptionPane.showMessageDialog(this, "A porta deve ser um valor numÈrico de no m·ximo 5 dÌgitos!");
 			return;
 		}
 		int intPorta = Integer.parseInt(strPorta);
@@ -243,7 +243,7 @@ public class FrameServidor extends JFrame implements IServer{
 			
 			registry.rebind(IServer.NOME_SERVICO, servidor);
 
-			mostrar("Servi√ßo iniciado.");
+			mostrar("ServiÁo iniciado.");
 
 			comboIP.setEnabled(false);
 			txtPorta.setEnabled(false);
@@ -252,17 +252,17 @@ public class FrameServidor extends JFrame implements IServer{
 			btnParar.setEnabled(true);
 
 		} catch (RemoteException e) {
-			JOptionPane.showMessageDialog(this, "Erro criando registro, verifique se a porta j√° n√£o est√° sendo usada.");
+			JOptionPane.showMessageDialog(this, "Erro criando registro, verifique se a porta j· n„o est· sendo usada.");
 			e.printStackTrace();
 		}
 	}
 	
 	/**
-	 * Avisa os clientes e encerra as atividades do servidor, mas n√£o fecha a
-	 * aplica√ß√£o.
+	 * Avisa os clientes e encerra as atividades do servidor, mas n„o fecha a
+	 * aplicaÁ„o.
 	 */
 	protected void pararServico() {
-		mostrar("SERVIDOR PARANDO O SERVI√áO.");
+		mostrar("SERVIDOR PARANDO O SERVI«O.");
 
 		//fecharTodosClientes();
 
@@ -276,7 +276,7 @@ public class FrameServidor extends JFrame implements IServer{
 
 			btnParar.setEnabled(false);
 
-			mostrar("Servi√ßo encerrado.");
+			mostrar("ServiÁo encerrado.");
 
 		} catch (RemoteException e) {
 			e.printStackTrace();
@@ -333,32 +333,40 @@ public class FrameServidor extends JFrame implements IServer{
 	@Override
 	public void publicarListaArquivos(Cliente c, List<Arquivo> lista) throws RemoteException {
 		for (Arquivo arquivo : lista) {
-			// Adiciono o arquivo como chave.. porque um cliente pode ter varios arquivos.. ou seja.. daria B.O
-			mapaClienteArquivo.put(arquivo, c);
-			mostrar("Adicionando arquivo " + arquivo.getNome() + " do cliente " + c.getNome());
+			
+			mapaClienteArquivo.put(c, lista);
+			
+			mostrar(mapaClienteArquivo.toString());
 		}		
 	}
 
 	@Override
 	public Map<Cliente, List<Arquivo>> procurarArquivo(String nome) throws RemoteException {
 		
-		Map<Cliente, List<Arquivo>> lista = new HashMap<>();
-		List<Arquivo> arquivos = new ArrayList<Arquivo>();
+		Map<Cliente, List<Arquivo>> arquivosEncontrados = new HashMap<Cliente, List<Arquivo>>();
 		
-		for (Entry<Arquivo, Cliente> arquivo : mapaClienteArquivo.entrySet()) {
+		// Percorrendo a HashMap principal.
+		for (Entry<Cliente, List<Arquivo>> arquivos : mapaClienteArquivo.entrySet()){
+			// Percorrendo a List interna.
 			
-			if (arquivo.getKey().getNome().toLowerCase().contains(nome.toLowerCase()) || nome.isEmpty()) {
-				
-				Cliente c = arquivo.getValue();
-				
-				arquivos.add(arquivo.getKey());
-				
-				lista.put(c, arquivos);	
+			for (Arquivo arquivo : arquivos.getValue()) {
+				// Pesquisando pelo nome.
+				if (arquivo.getNome().toLowerCase().contains(nome.toLowerCase())) {
+					List<Arquivo> listaArquivos = new ArrayList<Arquivo>();
+					Cliente novoCliente = new Cliente();
+
+					novoCliente.setNome(arquivos.getKey().getNome());
+					novoCliente.setIp(arquivos.getKey().getIp());
+					novoCliente.setPorta(arquivos.getKey().getPorta());
+
+					listaArquivos.add(arquivo);
+
+					arquivosEncontrados.put(novoCliente, listaArquivos);
+				}
 			}
 		}
 		
-		
-		return lista;
+		return arquivosEncontrados;
 	}
 
 	@Override
